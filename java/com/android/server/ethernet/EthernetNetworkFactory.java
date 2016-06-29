@@ -100,6 +100,8 @@ class EthernetNetworkFactory {
     private static boolean mLinkUp;
     private NetworkInfo mNetworkInfo;
     private LinkProperties mLinkProperties;
+    //add ethernet
+    private Handler mHandler;
 
     EthernetNetworkFactory(RemoteCallbackList<IEthernetServiceListener> listeners) {
         mNetworkInfo = new NetworkInfo(ConnectivityManager.TYPE_ETHERNET, 0, NETWORK_TYPE, "");
@@ -269,6 +271,12 @@ class EthernetNetworkFactory {
                 if (config.getIpAssignment() == IpAssignment.STATIC) {
                     if (!setStaticIpAddress(config.getStaticIpConfiguration())) {
                         // We've already logged an error.
+                        //if error then stop and restart add ethernet
+                        if((mContext != null) && (mHandler != null)) {
+                            Log.d(TAG, "Setting static ip failed now restart");
+                            stop();
+                            start(mContext,mHandler);
+                        }
                         return;
                     }
                     linkProperties = config.getStaticIpConfiguration().toLinkProperties(mIface);
@@ -363,6 +371,9 @@ class EthernetNetworkFactory {
 
         mContext = context;
 
+        //add ethernet
+        mHandler = target;
+
         // Start tracking interface change events.
         mInterfaceObserver = new InterfaceObserver();
         try {
@@ -385,6 +396,10 @@ class EthernetNetworkFactory {
                         // configuring it. Since we're already holding the lock,
                         // any real link up/down notification will only arrive
                         // after we've done this.
+                        //add ethernet make sure the interface is eht0
+                        if(!iface.equals("eth0")) {
+                            continue;
+                        }
                         if (mNMService.getInterfaceConfig(iface).hasFlag("running")) {
                             updateInterfaceState(iface, true);
                         }

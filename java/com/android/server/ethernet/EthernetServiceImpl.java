@@ -18,6 +18,7 @@ package com.android.server.ethernet;
 
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.net.EthernetManager;
 import android.net.IEthernetManager;
 import android.net.IEthernetServiceListener;
 import android.net.IpConfiguration;
@@ -26,8 +27,10 @@ import android.net.IpConfiguration.ProxySettings;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.Looper;
 import android.os.RemoteCallbackList;
 import android.os.RemoteException;
+import android.provider.Settings;
 import android.util.Log;
 import android.util.PrintWriterPrinter;
 
@@ -91,6 +94,14 @@ public class EthernetServiceImpl extends IEthernetManager.Stub {
         HandlerThread handlerThread = new HandlerThread("EthernetServiceThread");
         handlerThread.start();
         mHandler = new Handler(handlerThread.getLooper());
+
+        //add ethernet functions
+        int enable = Settings.Global.getInt(mContext.getContentResolver(),
+                                            Settings.Global.ETHERNET_ON, 0);
+        if(enable != EthernetManager.ETH_STATE_ENABLED) {
+            Log.i(TAG, "Ethernet is not enable");
+            return;
+        }
 
         mTracker.start(mContext, mHandler);
 
@@ -195,5 +206,32 @@ public class EthernetServiceImpl extends IEthernetManager.Stub {
         pw.increaseIndent();
         mHandler.dump(new PrintWriterPrinter(pw), "EthernetServiceImpl");
         pw.decreaseIndent();
+    }
+
+    //add ethernet functions
+    class TstartThread extends Thread {
+        public void run() {
+            Looper.prepare();
+            mTracker.start(mContext, mHandler);
+            mStarted.set(true);
+            Looper.loop();
+        }
+    }
+
+    public void Trackstart() { //add by hclydao
+        new TstartThread().start();
+    }
+
+    public void Trackstop() {
+        Log.i(TAG, "Stop Ethernet service");
+        Thread tstopthread = new Thread(new Runnable() {
+            public void run() {
+                Looper.prepare();
+                mTracker.stop();
+                mStarted.set(false);
+                Looper.loop();
+            }
+        });
+        tstopthread.start();
     }
 }
