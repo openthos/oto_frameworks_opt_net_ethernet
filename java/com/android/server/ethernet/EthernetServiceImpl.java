@@ -97,7 +97,8 @@ public class EthernetServiceImpl extends IEthernetManager.Stub {
 
         //add ethernet functions
         int enable = Settings.Global.getInt(mContext.getContentResolver(),
-                                            Settings.Global.ETHERNET_ON, 0);
+                                            Settings.Global.ETHERNET_ON,
+                                            EthernetManager.ETH_STATE_ENABLED);
         if(enable != EthernetManager.ETH_STATE_ENABLED) {
             Log.i(TAG, "Ethernet is not enable");
             return;
