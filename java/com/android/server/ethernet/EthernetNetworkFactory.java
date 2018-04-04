@@ -427,7 +427,9 @@ class EthernetNetworkFactory {
         mNetworkAgent = null;
         setInterfaceInfoLocked("", null);
         mNetworkInfo = new NetworkInfo(ConnectivityManager.TYPE_ETHERNET, 0, NETWORK_TYPE, "");
-        mFactory.unregister();
+        if (mFactory != null) {
+            mFactory.unregister();
+        }
     }
 
     private void initNetworkCapabilities() {
