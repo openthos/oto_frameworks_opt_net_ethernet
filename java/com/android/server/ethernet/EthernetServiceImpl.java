@@ -235,4 +235,16 @@ public class EthernetServiceImpl extends IEthernetManager.Stub {
         });
         tstopthread.start();
     }
+
+    public void setEthernetState(final boolean up) {
+        new Thread() {
+            @Override
+            public void run() {
+                Looper.prepare();
+                mTracker.setInterfaceState(up);
+                mStarted.set(up);
+                Looper.loop();
+            }
+        }.start();
+    }
 }

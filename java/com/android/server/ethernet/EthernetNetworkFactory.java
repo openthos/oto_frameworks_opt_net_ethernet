@@ -271,12 +271,6 @@ class EthernetNetworkFactory {
                 if (config.getIpAssignment() == IpAssignment.STATIC) {
                     if (!setStaticIpAddress(config.getStaticIpConfiguration())) {
                         // We've already logged an error.
-                        //if error then stop and restart add ethernet
-                        if((mContext != null) && (mHandler != null)) {
-                            Log.d(TAG, "Setting static ip failed now restart");
-                            stop();
-                            start(mContext,mHandler);
-                        }
                         return;
                     }
                     linkProperties = config.getStaticIpConfiguration().toLinkProperties(mIface);
@@ -444,6 +438,22 @@ class EthernetNetworkFactory {
 
     public synchronized boolean isTrackingInterface() {
         return !TextUtils.isEmpty(mIface);
+    }
+
+    /**
+     * Set interface state.
+     * Called on link state changes or on startup.
+     */
+    public synchronized void setInterfaceState(boolean up) {
+        try {
+            if (up) {
+                mNMService.setInterfaceUp(mIface);
+            } else {
+                mNMService.setInterfaceDown(mIface);
+            }
+        } catch (RemoteException e) {
+            Log.e(TAG, "Error update interface " + mIface + ": " + e);
+        }
     }
 
     /**
